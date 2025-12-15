@@ -57,6 +57,9 @@ func (tl *TokenBucketLimiter) Allow() bool {
 }
 
 func startClock(tl *TokenBucketLimiter) {
+	if tl == nil {
+		return
+	}
 	ticker := time.NewTicker(tl.refillRate)
 	defer ticker.Stop()
 	for {
@@ -80,23 +83,34 @@ func refill(limiter *TokenBucketLimiter) {
 }
 
 func (tl *TokenBucketLimiter) Stop() {
+	if tl == nil {
+		return
+	}
 	tl.done.Do(func() {
 		close(tl.stopChan)
 	})
 }
 
 func (tl *TokenBucketLimiter) BucketSize() int {
+	tl.mutex.Lock()
+	defer tl.mutex.Unlock()
 	return tl.bucketSize
 }
 
 func (tl *TokenBucketLimiter) CurrentTokenAmount() int {
+	tl.mutex.Lock()
+	defer tl.mutex.Unlock()
 	return tl.currentTokenAmount
 }
 
 func (tl *TokenBucketLimiter) RefillAmount() int {
+	tl.mutex.Lock()
+	defer tl.mutex.Unlock()
 	return tl.refillAmount
 }
 
 func (tl *TokenBucketLimiter) RefillRate() time.Duration {
+	tl.mutex.Lock()
+	defer tl.mutex.Unlock()
 	return tl.refillRate
 }
