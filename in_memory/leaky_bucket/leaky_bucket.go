@@ -77,17 +77,25 @@ func (lb *LeakyBucket) Stop() {
 }
 
 func (lb *LeakyBucket) OutflowRate() time.Duration {
+	lb.mutex.Lock()
+	defer lb.mutex.Unlock()
 	return lb.outflowRate
 }
 
 func (lb *LeakyBucket) OutflowAmount() int {
+	lb.mutex.Lock()
+	defer lb.mutex.Unlock()
 	return lb.outflowAmount
 }
 
 func (lb *LeakyBucket) BucketSize() int {
+	lb.mutex.Lock()
+	defer lb.mutex.Unlock()
 	return lb.bucketSize
 }
 
 func (lb *LeakyBucket) QueueSize() int {
+	lb.mutex.Lock()
+	defer lb.mutex.Unlock()
 	return lb.requestQueue.size
 }

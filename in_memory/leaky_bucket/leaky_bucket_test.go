@@ -20,7 +20,7 @@ func TestInitializationHappyPath(t *testing.T) {
 	}
 }
 
-func TestInitializationEmptyBucket(t *testing.T) {
+func TestInitializationEmptyLeakyBucket(t *testing.T) {
 	limiter, err := leakybucket.Init(0, 1, time.Second)
 	if err == nil {
 		t.Error("init succeeded when it should've failed")
@@ -57,7 +57,7 @@ func TestRateLimitExceeded(t *testing.T) {
 	}
 }
 
-func TestBucketRefill(t *testing.T) {
+func TestLeakyBucketOutflow(t *testing.T) {
 	limiter, err := leakybucket.Init(10, 5, time.Second)
 	if err != nil {
 		t.Error("init failed")
