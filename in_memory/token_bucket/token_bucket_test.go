@@ -1,11 +1,11 @@
-package in_memory_test
+package tokenbucket_test
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	token_bucket "github.com/ukpabik/sentinel/in_memory"
+	token_bucket "github.com/ukpabik/sentinel/in_memory/token_bucket"
 )
 
 func TestInitializationHappyPath(t *testing.T) {
