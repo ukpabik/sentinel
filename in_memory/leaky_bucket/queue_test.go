@@ -1,9 +1,8 @@
 package leakybucket_test
 
 import (
-	"fmt"
-	"strconv"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	leakybucket "github.com/ukpabik/sentinel/in_memory/leaky_bucket"
@@ -30,20 +29,25 @@ func TestConcurrentQueueAppendAndPop(t *testing.T) {
 		t.Error("unable to initialize concurrent queue")
 	}
 
-	for i := range 10 {
-		cq.Append(strconv.Itoa(i))
+	for range 10 {
+		if err := cq.Append(); err != nil {
+			t.Errorf("failed to append: %v", err)
+		}
 	}
 
-	size := cq.Size()
-	for i := size - 1; i >= 0; i-- {
-		popped, err := cq.Pop()
+	if cq.Size() != 10 {
+		t.Errorf("expected size 10, got %d", cq.Size())
+	}
+
+	for i := 0; i < 10; i++ {
+		_, err := cq.Pop()
 		if err != nil {
 			t.Error("error while popping")
 		}
-		expected := strconv.Itoa(i)
-		if expected != popped {
-			t.Errorf("expected value: %s, got value: %s", expected, popped)
-		}
+	}
+
+	if cq.Size() != 0 {
+		t.Errorf("expected size 0, got %d", cq.Size())
 	}
 }
 
@@ -53,20 +57,25 @@ func TestConcurrentQueueAppendLeftAndPopLeft(t *testing.T) {
 		t.Error("unable to initialize concurrent queue")
 	}
 
-	for i := range 10 {
-		cq.AppendLeft(strconv.Itoa(i))
+	for range 10 {
+		if err := cq.AppendLeft(); err != nil {
+			t.Errorf("failed to append left: %v", err)
+		}
 	}
 
-	size := cq.Size()
-	for i := size - 1; i >= 0; i-- {
-		popped, err := cq.PopLeft()
+	if cq.Size() != 10 {
+		t.Errorf("expected size 10, got %d", cq.Size())
+	}
+
+	for i := 0; i < 10; i++ {
+		_, err := cq.PopLeft()
 		if err != nil {
-			t.Error("error while popping")
+			t.Error("error while popping left")
 		}
-		expected := strconv.Itoa(i)
-		if expected != popped {
-			t.Errorf("expected value: %s, got value: %s", expected, popped)
-		}
+	}
+
+	if cq.Size() != 0 {
+		t.Errorf("expected size 0, got %d", cq.Size())
 	}
 }
 
@@ -82,23 +91,23 @@ func TestConcurrentQueueMultipleThreads(t *testing.T) {
 	}
 
 	start := make(chan struct{})
-
 	var wg sync.WaitGroup
 	errCh := make(chan error, N*M)
 
+	var successCount int64
+
 	wg.Add(N)
 	for pid := 0; pid < N; pid++ {
-		pid := pid
 		go func() {
 			defer wg.Done()
 			<-start
 
 			for i := 0; i < M; i++ {
-				v := fmt.Sprintf("p%d-%d", pid, i)
-				if err := cq.Append(v); err != nil {
+				if err := cq.Append(); err != nil {
 					errCh <- err
 					return
 				}
+				atomic.AddInt64(&successCount, 1)
 			}
 		}()
 	}
@@ -107,24 +116,24 @@ func TestConcurrentQueueMultipleThreads(t *testing.T) {
 	wg.Wait()
 	close(errCh)
 
-	for range errCh {
-		t.Error("append failed")
+	for err := range errCh {
+		t.Errorf("append failed: %v", err)
 	}
 
-	seen := make(map[string]struct{}, N*M)
+	if expected, got := int(successCount), cq.Size(); expected != got {
+		t.Errorf("wrong queue size: got %d, expected %d", got, expected)
+	}
+
+	poppedCount := 0
 	for cq.Size() > 0 {
-		v, err := cq.PopLeft()
+		_, err := cq.PopLeft()
 		if err != nil {
 			t.Error("pop failed")
 		}
-
-		if _, ok := seen[v]; ok {
-			t.Error("duplicate value popped")
-		}
-		seen[v] = struct{}{}
+		poppedCount++
 	}
 
-	if expected, got := len(seen), N*M; expected != got {
-		t.Errorf("wrong total items: got %d, expected %d", got, expected)
+	if expected, got := int(successCount), poppedCount; expected != got {
+		t.Errorf("wrong total items popped: got %d, expected %d", got, expected)
 	}
 }

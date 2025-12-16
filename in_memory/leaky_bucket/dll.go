@@ -1,7 +1,7 @@
 package leakybucket
 
 type Node struct {
-	Data string
+	Data *Token
 	Next *Node
 	Prev *Node
 }
@@ -25,14 +25,12 @@ func DLLInitializer() *DLL {
 	return doubly
 }
 
-func (dll *DLL) AddAtHead(value string) {
+func (dll *DLL) AddAtHead(value *Token) {
 	if dll == nil {
 		return
 	}
 
-	newNode := &Node{
-		Data: value,
-	}
+	newNode := &Node{Data: value}
 
 	next := dll.Head.Next
 	newNode.Prev = dll.Head
@@ -41,14 +39,12 @@ func (dll *DLL) AddAtHead(value string) {
 	newNode.Next = next
 }
 
-func (dll *DLL) AddAtTail(value string) {
+func (dll *DLL) AddAtTail(value *Token) {
 	if dll == nil {
 		return
 	}
 
-	newNode := &Node{
-		Data: value,
-	}
+	newNode := &Node{Data: value}
 
 	prev := dll.Tail.Prev
 	dll.Tail.Prev = newNode

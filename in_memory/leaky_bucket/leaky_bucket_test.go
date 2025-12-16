@@ -1,27 +1,27 @@
-package tokenbucket_test
+package leakybucket_test
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	tokenbucket "github.com/ukpabik/sentinel/in_memory/token_bucket"
+	leakybucket "github.com/ukpabik/sentinel/in_memory/leaky_bucket"
 )
 
 func TestInitializationHappyPath(t *testing.T) {
-	limiter, err := tokenbucket.Init(10, 1, time.Second)
+	limiter, err := leakybucket.Init(10, 5, time.Second)
 	if err != nil {
 		t.Error("init failed")
 	}
 	defer limiter.Stop()
 
-	if limiter.BucketSize() != 10 || limiter.RefillAmount() != 1 || limiter.RefillRate() != time.Second {
+	if limiter.BucketSize() != 10 || limiter.OutflowAmount() != 5 || limiter.OutflowRate() != time.Second {
 		t.Error("the limiter values are not eq")
 	}
 }
 
 func TestInitializationEmptyBucket(t *testing.T) {
-	limiter, err := tokenbucket.Init(0, 1, time.Second)
+	limiter, err := leakybucket.Init(0, 1, time.Second)
 	if err == nil {
 		t.Error("init succeeded when it should've failed")
 	}
@@ -29,7 +29,7 @@ func TestInitializationEmptyBucket(t *testing.T) {
 }
 
 func TestRateLimitHappyPath(t *testing.T) {
-	limiter, err := tokenbucket.Init(10, 2, time.Second)
+	limiter, err := leakybucket.Init(10, 10, time.Second)
 	if err != nil {
 		t.Error("init failed")
 	}
@@ -43,7 +43,7 @@ func TestRateLimitHappyPath(t *testing.T) {
 }
 
 func TestRateLimitExceeded(t *testing.T) {
-	limiter, err := tokenbucket.Init(10, 2, time.Second)
+	limiter, err := leakybucket.Init(10, 2, time.Second)
 	if err != nil {
 		t.Error("init failed")
 	}
@@ -53,12 +53,12 @@ func TestRateLimitExceeded(t *testing.T) {
 		limiter.Allow()
 	}
 	if limiter.Allow() {
-		t.Error("bucket tokens are not depleting as expected")
+		t.Error("leaky bucket queue is not limiting requests as expected")
 	}
 }
 
 func TestBucketRefill(t *testing.T) {
-	limiter, err := tokenbucket.Init(10, 2, time.Second)
+	limiter, err := leakybucket.Init(10, 5, time.Second)
 	if err != nil {
 		t.Error("init failed")
 	}
@@ -67,9 +67,9 @@ func TestBucketRefill(t *testing.T) {
 	for range 10 {
 		limiter.Allow()
 	}
-	time.Sleep(limiter.RefillRate() + 100*time.Millisecond)
-	fmt.Printf("Current token amount: %d\n", limiter.CurrentTokenAmount())
-	if limiter.CurrentTokenAmount() != 2 || !limiter.Allow() {
-		t.Error("bucket tokens are not refilling as expected")
+	time.Sleep(limiter.OutflowRate() + 100*time.Millisecond)
+	fmt.Printf("Current queue size: %d\n", limiter.QueueSize())
+	if limiter.QueueSize() != 5 || !limiter.Allow() {
+		t.Error("queue was not emptied during outflow period")
 	}
 }
