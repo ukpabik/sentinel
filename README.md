@@ -23,8 +23,8 @@ Each of the test suites also shows how to use the specified implementation. I re
 I'm currently working on implementing these algorithms below! I also want to create distributed versions for production-level rate limiting in the future.
 
 * [x] **Token Bucket Limiter:** Efficiently handles traffic bursts while enforcing a steady average rate.
-* [x] **Leaky Bucket Limiter:** Ensure requests are processed at a perfectly constant rate (smoothing traffic).
-* [ ] **Fixed Window Limiter:** Simple rate limiting based on distinct time windows.
-* [ ] **Sliding Window Limiter:** High-accuracy rate limiting over rolling time windows to prevent window-boundary spikes.
+* [x] **Leaky Bucket Limiter:** Ensures requests are processed at a perfectly constant rate (traffic smoothing).
+* [x] **Fixed Window Counter:** Simple counter-based rate limiting using discrete time windows.
+* [x] **Sliding Window Log:** High-accuracy rate limiting using timestamped request logs.
+* [ ] **Sliding Window Counter:** Approximate rolling-window rate limiting (unfinished).
 * [ ] **Distributed Support:** Redis-backed limiters for distributed systems.
-* [ ] **Benchmarks:** Comprehensive performance comparisons between algorithms, involving throughput and speed.
