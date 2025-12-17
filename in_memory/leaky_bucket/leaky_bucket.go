@@ -44,6 +44,7 @@ func Init(bucketSize, outflowAmount int, outflowRate time.Duration) (*LeakyBucke
 
 func StartClock(lb *LeakyBucket) {
 	ticker := time.NewTicker(lb.outflowRate)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
