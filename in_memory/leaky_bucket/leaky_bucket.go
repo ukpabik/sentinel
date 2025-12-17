@@ -49,7 +49,6 @@ func StartClock(lb *LeakyBucket) {
 		select {
 		case <-ticker.C:
 			lb.mutex.Lock()
-			// pop from tail here and "process" request
 			for range min(lb.outflowAmount, lb.requestQueue.Size()) {
 				lb.requestQueue.Pop()
 			}
