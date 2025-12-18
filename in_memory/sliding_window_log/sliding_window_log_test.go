@@ -7,8 +7,6 @@ import (
 	slidingwindowlog "github.com/ukpabik/sentinel/in_memory/sliding_window_log"
 )
 
-// Test Initialization Happy path vs empty, Regular usage Happy vs Unhappy
-
 func TestInitializationHappyPath(t *testing.T) {
 	window, err := slidingwindowlog.Init(10, time.Second)
 	if err != nil {

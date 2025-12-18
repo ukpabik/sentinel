@@ -1,4 +1,4 @@
-package slidingwindowlog
+package inmemory
 
 import "time"
 

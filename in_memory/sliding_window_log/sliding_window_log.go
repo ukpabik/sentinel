@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	inmemory "github.com/ukpabik/sentinel/in_memory"
 )
 
 type SlidingWindowLog struct {
-	logQueue     *PriorityQueue
+	logQueue     *inmemory.PriorityQueue
 	allowedCount int
 	rate         time.Duration
 	counter      int
@@ -21,7 +23,7 @@ func Init(allowedCount int, rate time.Duration) (*SlidingWindowLog, error) {
 	}
 
 	swl := &SlidingWindowLog{
-		logQueue:     &PriorityQueue{},
+		logQueue:     &inmemory.PriorityQueue{},
 		allowedCount: allowedCount,
 		rate:         rate,
 	}
@@ -36,7 +38,7 @@ func (swl *SlidingWindowLog) Allow() bool {
 
 	swl.mutex.Lock()
 	defer swl.mutex.Unlock()
-	currLog := &Log{
+	currLog := &inmemory.Log{
 		ID:        swl.counter,
 		Timestamp: time.Now(),
 	}

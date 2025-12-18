@@ -7,8 +7,6 @@ import (
 	fixedwindowcounter "github.com/ukpabik/sentinel/in_memory/fixed_window_counter"
 )
 
-// Tests: Initialization Happy vs Empty, Regular Usage Happy vs Unhappy
-
 func TestInitializationHappyPath(t *testing.T) {
 	window, err := fixedwindowcounter.Init(10, 5*time.Second)
 	if err != nil {
