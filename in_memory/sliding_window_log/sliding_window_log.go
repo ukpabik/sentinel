@@ -49,7 +49,7 @@ func (swl *SlidingWindowLog) Allow() bool {
 		heap.Pop(swl.logQueue)
 	}
 	heap.Push(swl.logQueue, currLog)
-	return swl.logQueue.Len() < swl.allowedCount
+	return swl.logQueue.Len() <= swl.allowedCount
 }
 
 func (swl *SlidingWindowLog) AllowedCount() int {
